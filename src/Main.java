@@ -35,13 +35,13 @@ public class Main {
     public  static void encryption(String message, int key){
 
         char[] array = message.toCharArray();
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for (int i = 0; i < array.length; i++) {
             char c = (char)(message.charAt(i) + key);
             if (c > 'я')
-                result += (char)(message.charAt(i) - (32-key));
+                result.append((char) (message.charAt(i) - (32 - key)));
             else
-                result += (char)(message.charAt(i) + key);
+                result.append((char) (message.charAt(i) + key));
         }
         System.out.println(result);
         }
