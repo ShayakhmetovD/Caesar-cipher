@@ -1,6 +1,7 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
 import java.util.Scanner;
+
+
 
 /* Данная программа реализует шифр Цезаря на основе нескольких способов, а именно:
 1. Шифрование/расшифрование файла с текстом;
@@ -16,7 +17,7 @@ public class Main {
             String path = scanner.nextLine();
             System.out.print("Введите ключ: ");
             int key = scanner.nextInt();
-            encryption(readingFromAFile(path),key);
+            writingToFile(encryption(readingFromAFile(path),key)); //чтение, шифрование и запись в файл
         }catch (NullPointerException e){
             System.out.println("Пустой файл, перезапусти программу!");
         }
@@ -40,12 +41,12 @@ public class Main {
     }
 
     //Данный метод производит шифрование исходного текста
-    public  static StringBuilder encryption(String message, int key){
+    public  static StringBuilder encryption(String sourceText, int key){
 
-        char[] array = message.toCharArray();
-        StringBuilder result = new StringBuilder();
+        char[] array = sourceText.toCharArray();
+        StringBuilder encryptedText = new StringBuilder();
         for (int i = 0; i < array.length; i++) {
-            char symbol = message.charAt(i);
+            char symbol = sourceText.charAt(i);
             if((symbol >= 'а') && (symbol <= 'я')) // если символ в нижнем регистре
             {
                 symbol = (char)(symbol + (key % 32)); // ключ % 32 бит
@@ -65,16 +66,16 @@ public class Main {
                     symbol = (char) (symbol - (key % 32));
                 }
             }
-            result.append(symbol);// Добавляем зашифрованные символы
+            encryptedText.append(symbol);// Добавляем зашифрованные символы
         }
-        return result;
+        return encryptedText;
         }
 
     //Данный метод производит расшифрование зашифрованного текста
     public  static StringBuilder decryption(String message, int key2){
         int key = -key2;
         char[] array = message.toCharArray();
-        StringBuilder result = new StringBuilder();
+        StringBuilder encryptedText = new StringBuilder();
         for (int i = 0; i < array.length; i++) {
             char symbol = message.charAt(i);
             if((symbol >= 'а') && (symbol <= 'я')) // если символ в нижнем регистре
@@ -96,11 +97,20 @@ public class Main {
                     symbol = (char) (symbol - (key % 32));
                 }
             }
-            result.append(symbol);// Добавляем расшифрованные символы
+            encryptedText.append(symbol);// Добавляем расшифрованные символы
         }
-        return result;
+        return encryptedText;
     }
 
     //Данный метод создает файл и производит запись зашифрованного текста
-
+    public static void writingToFile(StringBuilder encryptedText) {
+        try(BufferedWriter bufferedWriter = new BufferedWriter(
+                new FileWriter("C:\\Users\\Danil\\IdeaProjects\\" +
+                        "Project - Caesar-cipher\\src\\DestFile\\destFile"))) {
+            bufferedWriter.write(String.valueOf(encryptedText));
+            bufferedWriter.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
         }
