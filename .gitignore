@@ -4,7 +4,6 @@ out/
 !**/src/test/**/out/
 .idea
 Project - Caesar-cipher.iml
-.gitignore
 
 ### Eclipse ###
 .apt_generated

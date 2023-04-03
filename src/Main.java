@@ -136,6 +136,7 @@ public class Main {
     private static StringBuilder bruteForce(String sourceText){
         Map<Integer,Integer> map = new HashMap<>();
         int count = 0;
+        System.out.println("Начинается перебор ключей...");
         for (int key = 0; key < 40; key++) {
             String destText = decryption(sourceText,(-key)).toString(); // создаем строку, расшифровываем текст на основе перебора ключей
 //            char[] array = destText.toCharArray();
@@ -148,6 +149,7 @@ public class Main {
             map.put(count,key);
             count = 0;
         }
+        System.out.println("Перебор ключей завершен!");
         List<Integer> list = new ArrayList<>(map.keySet());
         Collections.sort(list);
         Integer bruteKey = list.get(list.size() - 1);
