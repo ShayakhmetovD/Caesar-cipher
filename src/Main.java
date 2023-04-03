@@ -37,7 +37,7 @@ public class Main {
                     System.out.println("Вы выбрали: \"Расшифрование файла с помощью известного ключа\"");
                     System.out.print("Введите ключ: ");
                     int decryptKey = scanner.nextInt();
-                    writingToFile(decryption(readingFromAFile(pathSourceFile), decryptKey), pathDestFile); //чтение, расшифрование и запись в файл
+                    writingToFile(decryption(readingFromAFile(pathSourceFile), -decryptKey), pathDestFile); //чтение, расшифрование и запись в файл
                 }
                 case 3 -> {
                     System.out.println("Вы выбрали: \"Расшифрование файла методом brute force\"");
@@ -115,8 +115,7 @@ public class Main {
     }
 
     //Данный метод производит расшифрование зашифрованного текста с помощью известного ключа
-    private static StringBuilder decryption(String sourceText, int key){
-        int decryptKey = -key;
+    private static StringBuilder decryption(String sourceText, int decryptKey){
         StringBuilder decryptedText = new StringBuilder();
         System.out.println("Начинается расшифрование файла...");
         for (int i = 0; i < sourceText.length(); i++) {
@@ -137,11 +136,11 @@ public class Main {
     private static StringBuilder bruteForce(String sourceText){
         Map<Integer,Integer> map = new HashMap<>();
         int count = 0;
-        for (int key = 0; key < Integer.MAX_VALUE; key++) {
-            String destText = decryption(sourceText,key).toString(); // создаем строку, расшифровываем текст на основе перебора ключей
-            char[] array = destText.toCharArray();
-            for (int j = 0; j < array.length; j++) {
-                char symbol = sourceText.charAt(j);
+        for (int key = 0; key < 40; key++) {
+            String destText = decryption(sourceText,(-key)).toString(); // создаем строку, расшифровываем текст на основе перебора ключей
+//            char[] array = destText.toCharArray();
+            for (int j = 0; j < destText.length(); j++) {
+                char symbol = destText.charAt(j);
                 if(symbol == ' '){
                     count++;
                 }
@@ -153,7 +152,7 @@ public class Main {
         Collections.sort(list);
         Integer bruteKey = list.get(list.size() - 1);
         System.out.println("Ваш ключ: " + bruteKey);
-        return decryption(sourceText,bruteKey);
+        return decryption(sourceText,(-bruteKey));
     }
 
     //Данный метод производит запись зашифрованного/расшифрованного текста в конечный файл
