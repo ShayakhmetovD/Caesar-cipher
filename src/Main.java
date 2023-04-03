@@ -11,8 +11,8 @@ import java.util.*;
 
 public class Main {
     static List<Character> alphabet;
-    static char[] symbols = {'.',',','"',':','-','!','?',' '};
     public static void main(String[] args) {
+        Alphabet();
         try(Scanner scanner = new Scanner(System.in)){
             System.out.print("Добро пожаловать!Номера вариантов работы программы:\n" +
                     " 1: Шифрование файла с помощью ключа\n" +
@@ -25,8 +25,8 @@ public class Main {
             System.out.print("Введите путь к конечному файлу: ");
             String pathDestFile = scanner.nextLine();
             System.out.print("Введите номер варианта: ");
-            int n = scanner.nextInt();
-            switch (n) {
+            int numberIsVariable = scanner.nextInt();
+            switch (numberIsVariable) {
                 case 1 -> {
                     System.out.println("Вы выбрали: \"Шифрование файла с помощью ключа\"");
                     System.out.print("Введите ключ: ");
@@ -46,7 +46,7 @@ public class Main {
                 case 4 -> {
                     System.out.println("Вы выбрали: \"Расшифрование файла на основе стастических данных\"");
                     System.out.print("Введите путь к статистическому файлу: ");
-                    String pathUseFile = scanner.nextLine();
+//                    String pathUseFile = scanner.nextLine();
                 }
             }
         }catch (NullPointerException e){
@@ -55,30 +55,35 @@ public class Main {
     }
 
     //Создание алфавита
-    private static List<Character> Alphabet(){
+    private static void Alphabet(){
         alphabet = new ArrayList<>();
         for (char i = 'А'; i <= 'Я'; i++) {
-            if(i=='Е'){
-                alphabet.add(i+1,'Ё');
-            }
             alphabet.add(i);
+            if(i=='Е'){
+                alphabet.add('Ё');
+            }
         }
         for (char i = 'а'; i <= 'я'; i++) {
+            alphabet.add(i);
             if(i=='е'){
-                alphabet.add(i+1,'ё');
+                alphabet.add('ё');
             }
-            alphabet.add(i);
         }
-        for (char i = 0; i < symbols.length; i++) {
-            alphabet.add(i);
-        }
-        return alphabet;
+        alphabet.add('.');
+        alphabet.add(',');
+        alphabet.add('"');
+        alphabet.add(':');
+        alphabet.add('-');
+        alphabet.add('!');
+        alphabet.add('?');
+        alphabet.add(' ');
     }
 
     //Данный метод производит чтение зашифрованного/расшифрованного текста из исходного файла
     private static String readingFromAFile(String pathSourceFile) {
         String sourceText = null;
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(pathSourceFile))) {
+            System.out.println("Начинается чтение файла...");
             while (bufferedReader.ready()) {
                 sourceText = bufferedReader.readLine();
             }
@@ -87,57 +92,44 @@ public class Main {
         } catch (Exception e) {
             System.out.println("Увы, я бессилен!");
         }
+        System.out.println("Файл прочитан!");
         return sourceText;
     }
 
     //Данный метод производит шифрование исходного текста с помощью ключа
     private static StringBuilder encryption(String sourceText, int encryptKey) {
-
-        char[] array = sourceText.toCharArray();
         StringBuilder encryptedText = new StringBuilder();
-        List<Character> list = new ArrayList<>(100);
-        list = Alphabet();
-        for (int i = 0; i < array.length; i++) {
+        System.out.println("Начинается шифрование файла...");
+        for (int i = 0; i < sourceText.length(); i++) {
             char symbol = sourceText.charAt(i);
-            int oldIndex = list.indexOf(symbol);
-            int newIndex = (oldIndex + encryptKey) % list.size();
+            int oldIndex = alphabet.indexOf(symbol);
+            int newIndex = (oldIndex + encryptKey) % alphabet.size();
             if (newIndex < 0) {
-                newIndex = list.size() + newIndex;
+                newIndex = alphabet.size() + newIndex;
             }
-            char newSymbol = list.get(newIndex);
+            char newSymbol = alphabet.get(newIndex);
             encryptedText.append(newSymbol);
         }
+        System.out.println("Файл зашифрован!");
         return encryptedText;
     }
 
     //Данный метод производит расшифрование зашифрованного текста с помощью известного ключа
     private static StringBuilder decryption(String sourceText, int key){
         int decryptKey = -key;
-        char[] array = sourceText.toCharArray();
         StringBuilder decryptedText = new StringBuilder();
-        for (int i = 0; i < array.length; i++) {
+        System.out.println("Начинается расшифрование файла...");
+        for (int i = 0; i < sourceText.length(); i++) {
             char symbol = sourceText.charAt(i);
-            if((symbol >= 'а') && (symbol <= 'я')) // если символ в нижнем регистре
-            {
-                symbol = (char)(symbol + (decryptKey % 32)); // ключ % 32 бит
-                if(symbol < 'а') {
-                    symbol = (char) (symbol + 32); // если символ стоит левее, чем начало алфавита
-                }
-                if(symbol > 'я') {
-                    symbol = (char) (symbol - (decryptKey % 32));// если символ стоит правее, чем конец алфавита
-                }
-            }else if((symbol >= 'А') && (symbol <= 'Я'))// если символ в верхнем регистре (далее аналогично)
-            {
-                symbol = (char)(symbol + (decryptKey % 32));
-                if(symbol < 'А') {
-                    symbol = (char) (symbol + (decryptKey % 32));
-                }
-                if(symbol > 'Я') {
-                    symbol = (char) (symbol - (decryptKey % 32));
-                }
+            int oldIndex = alphabet.indexOf(symbol);
+            int newIndex = (oldIndex + decryptKey) % alphabet.size();
+            if (newIndex < 0) {
+                newIndex = alphabet.size() + newIndex;
             }
-            decryptedText.append(symbol);// Добавляем расшифрованные символы
+            char newSymbol = alphabet.get(newIndex);
+            decryptedText.append(newSymbol);
         }
+        System.out.println("Файл расшифрован!");
         return decryptedText;
     }
 
@@ -167,10 +159,12 @@ public class Main {
     //Данный метод производит запись зашифрованного/расшифрованного текста в конечный файл
     private static void writingToFile(StringBuilder destText, String pathDestFile) {
         try(BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(pathDestFile))) {
+            System.out.println("Начинается запись в файл...");
             bufferedWriter.write(String.valueOf(destText));
             bufferedWriter.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        System.out.println("Файл записан!");
     }
         }
