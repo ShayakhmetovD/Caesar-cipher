@@ -134,25 +134,28 @@ public class Main {
 
     //Данный метод производит расшифрование текста методом brute force
     private static StringBuilder bruteForce(String sourceText){
-        Map<Integer,Integer> map = new HashMap<>();
+        Map<Integer,Integer> map = new TreeMap<>();
         int count = 0;
+        int maxCount = 0;
         System.out.println("Начинается перебор ключей...");
         for (int key = 0; key < 40; key++) {
-            String destText = decryption(sourceText,(-key)).toString(); // создаем строку, расшифровываем текст на основе перебора ключей
-//            char[] array = destText.toCharArray();
+            StringBuilder destText = decryption(sourceText,(-key)); // создаем строку, расшифровываем текст на основе перебора ключей
             for (int j = 0; j < destText.length(); j++) {
                 char symbol = destText.charAt(j);
-                if(symbol == ' '){
+                if(symbol == ' '){ // сравниваем символы на наличие пробелов
                     count++;
                 }
             }
-            map.put(count,key);
+            if(count>maxCount){
+                maxCount = count;
+                map.put(maxCount,key);
+            }
             count = 0;
         }
         System.out.println("Перебор ключей завершен!");
         List<Integer> list = new ArrayList<>(map.keySet());
-        Collections.sort(list);
-        Integer bruteKey = list.get(list.size() - 1);
+        Integer key = list.get(list.size()-1);
+        Integer bruteKey = map.get(key);
         System.out.println("Ваш ключ: " + bruteKey);
         return decryption(sourceText,(-bruteKey));
     }
