@@ -4,9 +4,13 @@ import java.util.*;
 
 
 /* Данная программа реализует шифр Цезаря на основе нескольких способов, а именно:
-1. Шифрование/расшифрование файла с текстом;
+1. Шифрование/расшифрование файла с текстом с помощью ключа;
 2. Расшифрование файла способом "грубой силы" brute force;
 3. Расшифрование файла способом, на основе сбора статистических данных;
+
+Условия работы программы:
+1. При расшифровании текста способом brute force, используемый ключ лежит в диапазоне [0-Integer.MAX_VALUE);
+2. При расшифровании текста на основе сбора статистических данных исходный и статистический текст должны быть одной длины.
  */
 
 public class Main {
@@ -24,6 +28,8 @@ public class Main {
             String pathSourceFile = scanner.nextLine();
             System.out.print("Введите путь к конечному файлу: ");
             String pathDestFile = scanner.nextLine();
+            System.out.print("Введите путь к статистическому файлу: ");
+            String pathAdditionalFile = scanner.nextLine();
             System.out.print("Введите номер варианта: ");
             int numberIsVariable = scanner.nextInt();
             switch (numberIsVariable) {
@@ -31,22 +37,35 @@ public class Main {
                     System.out.println("Вы выбрали: \"Шифрование файла с помощью ключа\"");
                     System.out.print("Введите ключ: ");
                     int encryptKey = scanner.nextInt();
-                    writingToFile(encryption(readingFromAFile(pathSourceFile), encryptKey), pathDestFile); //чтение, шифрование и запись в файл
+                    writingToFile(
+                            encryption(
+                                    readingFromAFile(
+                                            pathSourceFile), encryptKey),
+                            pathDestFile); //чтение, шифрование и запись в файл
                 }
                 case 2 -> {
                     System.out.println("Вы выбрали: \"Расшифрование файла с помощью известного ключа\"");
                     System.out.print("Введите ключ: ");
                     int decryptKey = scanner.nextInt();
-                    writingToFile(decryption(readingFromAFile(pathSourceFile), -decryptKey), pathDestFile); //чтение, расшифрование и запись в файл
+                    writingToFile(
+                            decryption(
+                                    readingFromAFile(pathSourceFile), -decryptKey),
+                            pathDestFile); //чтение, расшифрование и запись в файл
                 }
                 case 3 -> {
                     System.out.println("Вы выбрали: \"Расшифрование файла методом brute force\"");
-                    writingToFile(bruteForce(readingFromAFile(pathSourceFile)), pathDestFile); //чтение, расшифрование и запись в файл
+                    writingToFile(
+                            bruteForce(
+                                    readingFromAFile(pathSourceFile)),
+                            pathDestFile); //чтение, расшифрование и запись в файл
                 }
                 case 4 -> {
                     System.out.println("Вы выбрали: \"Расшифрование файла на основе стастических данных\"");
-                    System.out.print("Введите путь к статистическому файлу: ");
-//                    String pathUseFile = scanner.nextLine();
+                    writingToFile(
+                            decryptionOnParsing(
+                                    readingFromAFile(pathAdditionalFile),
+                                    readingFromAFile(pathSourceFile)),
+                            pathDestFile); //чтение, расшифрование и запись в файл
                 }
             }
         }catch (NullPointerException e){
@@ -138,7 +157,7 @@ public class Main {
         int count = 0;
         int maxCount = 0;
         System.out.println("Начинается перебор ключей...");
-        for (int key = 0; key < 40; key++) {
+        for (int key = 0; key < Integer.MAX_VALUE; key++) {
             StringBuilder destText = decryption(sourceText,(-key)); // создаем строку, расшифровываем текст на основе перебора ключей
             for (int j = 0; j < destText.length(); j++) {
                 char symbol = destText.charAt(j);
@@ -158,6 +177,47 @@ public class Main {
         Integer bruteKey = map.get(key);
         System.out.println("Ваш ключ: " + bruteKey);
         return decryption(sourceText,(-bruteKey));
+    }
+
+    //Данный метод производит расшифрование текста на основе статистических данных
+    private static StringBuilder decryptionOnParsing(String sourceText, String AdditionalText) {
+        StringBuilder decryptedText = new StringBuilder();
+        Map<Double, Character> frequencyCharInAdditionalText = new HashMap<>();
+        int countInAdditionalText = 0;
+        int countInSourceText = 0;
+        for (int i = 0; i < AdditionalText.length(); i++) { // вычисление частоты повторений символа во вспомогательном тексте
+            char symbolI = sourceText.charAt(i);
+            for (int j = 0; j < AdditionalText.length(); j++) {
+                char symbolJ = sourceText.charAt(j);
+                if (symbolI == symbolJ) {
+                    if (frequencyCharInAdditionalText.containsValue(symbolI)) {
+                        i++;
+                        break;
+                    } else {
+                        countInAdditionalText++;
+                    }
+                }
+            }
+            Double percent = Math.ceil(((double) countInAdditionalText / AdditionalText.length()) * 100); // вычисление процента повторений
+            frequencyCharInAdditionalText.put(percent, symbolI);
+            countInAdditionalText = 0;
+        }
+
+        for (int i = 0; i < sourceText.length(); i++) { // вычисление частоты повторений символа в зашифрованном тексте
+            char symbolI = sourceText.charAt(i);
+            for (int j = 0; j < sourceText.length(); j++) {
+                char symbolJ = sourceText.charAt(j);
+                if (symbolI == symbolJ) {
+                    countInSourceText++;
+                }
+            }
+            Double percent2 = Math.ceil(((double) countInSourceText / sourceText.length()) * 100);
+            if(frequencyCharInAdditionalText.containsKey(percent2)){ // сравнение процентов поворений символов в обоих текстах
+                decryptedText.append(frequencyCharInAdditionalText.get(percent2)); //расшифрование текста на основе сравнения процентов повторений символов
+            }
+            countInSourceText = 0;
+        }
+        return decryptedText;
     }
 
     //Данный метод производит запись зашифрованного/расшифрованного текста в конечный файл
