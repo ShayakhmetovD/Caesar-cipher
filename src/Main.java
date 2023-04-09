@@ -7,6 +7,10 @@ import java.util.*;
 1. Шифрование/расшифрование файла с текстом с помощью ключа;
 2. Расшифрование файла способом "грубой силы" brute force;
 3. Расшифрование файла способом, на основе сбора статистических данных;
+
+Условия работы программы:
+1. При расшифровании текста способом brute force, используемый ключ лежит в диапазоне [0-Integer.MAX_VALUE);
+2. При расшифровании текста на основе сбора статистических данных исходный и статистический текст должны быть одной длины.
  */
 
 public class Main {
@@ -24,6 +28,8 @@ public class Main {
             String pathSourceFile = scanner.nextLine();
             System.out.print("Введите путь к конечному файлу: ");
             String pathDestFile = scanner.nextLine();
+            System.out.print("Введите путь к статистическому файлу: ");
+            String pathAdditionalFile = scanner.nextLine();
             System.out.print("Введите номер варианта: ");
             int numberIsVariable = scanner.nextInt();
             switch (numberIsVariable) {
@@ -55,13 +61,11 @@ public class Main {
                 }
                 case 4 -> {
                     System.out.println("Вы выбрали: \"Расшифрование файла на основе стастических данных\"");
-                    System.out.print("Введите путь к статистическому файлу: ");
-                    String pathAdditionalFile = scanner.nextLine();
                     writingToFile(
-                            parsing(
+                            decryptionOnParsing(
                                     readingFromAFile(pathAdditionalFile),
                                     readingFromAFile(pathSourceFile)),
-                            pathDestFile);
+                            pathDestFile); //чтение, расшифрование и запись в файл
                 }
             }
         }catch (NullPointerException e){
@@ -153,7 +157,7 @@ public class Main {
         int count = 0;
         int maxCount = 0;
         System.out.println("Начинается перебор ключей...");
-        for (int key = 0; key < 40; key++) {
+        for (int key = 0; key < Integer.MAX_VALUE; key++) {
             StringBuilder destText = decryption(sourceText,(-key)); // создаем строку, расшифровываем текст на основе перебора ключей
             for (int j = 0; j < destText.length(); j++) {
                 char symbol = destText.charAt(j);
@@ -176,49 +180,43 @@ public class Main {
     }
 
     //Данный метод производит расшифрование текста на основе статистических данных
-    private static StringBuilder parsing(String sourceText, String AdditionalText) {
+    private static StringBuilder decryptionOnParsing(String sourceText, String AdditionalText) {
         StringBuilder decryptedText = new StringBuilder();
-        Map<Character, Double> frequencyCharInAdditionalText = new HashMap<>();
-        Map<Character, Double> frequencyCharInSourceText = new HashMap<>();
-        int count = 0;
-        int count2 = 0;
-        for (int i = 0; i < AdditionalText.length(); i++) {
+        Map<Double, Character> frequencyCharInAdditionalText = new HashMap<>();
+        int countInAdditionalText = 0;
+        int countInSourceText = 0;
+        for (int i = 0; i < AdditionalText.length(); i++) { // вычисление частоты повторений символа во вспомогательном тексте
             char symbolI = sourceText.charAt(i);
             for (int j = 0; j < AdditionalText.length(); j++) {
                 char symbolJ = sourceText.charAt(j);
                 if (symbolI == symbolJ) {
-                    if (frequencyCharInAdditionalText.containsKey(symbolI)) {
+                    if (frequencyCharInAdditionalText.containsValue(symbolI)) {
                         i++;
                         break;
                     } else {
-                        count++;
+                        countInAdditionalText++;
                     }
                 }
             }
-            Double percent = Math.ceil(((double) count / AdditionalText.length()) * 100);
-            frequencyCharInAdditionalText.put(symbolI, percent);
-            count = 0;
+            Double percent = Math.ceil(((double) countInAdditionalText / AdditionalText.length()) * 100); // вычисление процента повторений
+            frequencyCharInAdditionalText.put(percent, symbolI);
+            countInAdditionalText = 0;
         }
 
-        for (int i = 0; i < sourceText.length(); i++) {
+        for (int i = 0; i < sourceText.length(); i++) { // вычисление частоты повторений символа в зашифрованном тексте
             char symbolI = sourceText.charAt(i);
             for (int j = 0; j < sourceText.length(); j++) {
                 char symbolJ = sourceText.charAt(j);
                 if (symbolI == symbolJ) {
-                    if (frequencyCharInSourceText.containsKey(symbolI)) {
-                        i++;
-                        break;
-                    } else {
-                        count2++;
-                    }
+                    countInSourceText++;
                 }
             }
-            Double percent2 = Math.ceil(((double) count2 / AdditionalText.length()) * 100);
-            frequencyCharInSourceText.put(symbolI, percent2);
-            count2 = 0;
+            Double percent2 = Math.ceil(((double) countInSourceText / sourceText.length()) * 100);
+            if(frequencyCharInAdditionalText.containsKey(percent2)){ // сравнение процентов поворений символов в обоих текстах
+                decryptedText.append(frequencyCharInAdditionalText.get(percent2)); //расшифрование текста на основе сравнения процентов повторений символов
+            }
+            countInSourceText = 0;
         }
-
-
         return decryptedText;
     }
 
